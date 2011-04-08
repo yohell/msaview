@@ -1,0 +1,19 @@
+<msaview>
+ 
+ <preset name="view.seq:gene_location" frompreset="view.pos:standard">
+   <renderers>
+     <renderer frompreset="renderer.seq.gene_location">
+       <resize_seqview_to_fit value="yes"/>
+     </renderer>
+   </renderers>
+ </preset>
+ 
+ <preset name="layout:gene_location" frompreset="layout:slim">
+   <seqviews>
+     <seqview frompreset="view.seq:ruler"/>
+     <seqview frompreset="view.seq:ids"/>
+     <seqview frompreset="view.seq:gene_location"/>
+   </seqviews>
+ </preset>
+
+</msaview>

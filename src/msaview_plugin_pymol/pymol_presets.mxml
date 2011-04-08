@@ -1,0 +1,12 @@
+<missy>
+  <preset name="pymolscript:cartoon_ss_default">
+    hide everything
+    color red, ss h
+    color yellow, ss s
+    color green, ss l+''
+    util.cbaw hetatm
+    show cartoon
+    show spheres, hetatm and not resn hoh
+  </preset>
+  <preset name="pymolscript:default" frompreset="pymolscript:cartoon_ss_default"/>
+</missy>

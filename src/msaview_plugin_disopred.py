@@ -1,0 +1,76 @@
+import os 
+
+from msaview import action
+from msaview.options import Option
+from msaview.features import (SequenceFeature,
+                              make_regions, 
+                              map_region_to_msa)
+
+class DisopredPrediction(object):
+    def __init__(self, sequence_id=None, sequence=None, regions=None):
+        self.sequence_id = sequence_id
+        self.sequence = sequence
+        if regions is None:
+            regions = []
+        self.regions = regions
+        
+    @classmethod
+    def from_file(cls, f, sequence_id=None):
+        if sequence_id is None:
+            sequence_id = os.path.splitext(os.path.basename(f.name))[0]
+        sequence = []
+        prediction = []
+        for line in f:
+            words = line.split()
+            if len(words) != 2:
+                continue
+            linetype = words[0].lower()
+            if linetype == 'aa:':
+                sequence.append(words[1])
+            elif linetype == 'pred:':
+                prediction.append(words[1])
+        regions = make_regions(''.join(prediction), '*')
+        return cls(sequence_id, sequence=''.join(sequence), regions=regions)
+        
+class ImportDisopredRegions(action.Action):
+    action_name = 'import-disopred-predictions'
+    path = ['Import', 'Sequence features', 'Disopred predictions for sequence']
+    tooltip = 'Import predictions of natively disordered regions from a disopred result file.'
+
+    @classmethod
+    def applicable(cls, target, coord=None):
+        if target.msaview_classname != 'data.msa':
+            return
+        if not coord or not coord.sequence:
+            return
+        return cls(target, coord)
+        
+    def get_options(self):
+        location = ''
+        if self.target:
+            if self.target.path:
+                location = os.path.dirname(self.target.path)
+            location = os.path.join(location, self.target.ids[self.coord.sequence] + '.disopred')
+        return [Option(None, 'location', location, location, 'Location', 'Disopred prediction file to load.')]
+    
+    def run(self):
+        f = open(self.params['location'])
+        prediction = DisopredPrediction.from_file(f)
+        f.close()
+        if not prediction:
+            return
+        sequence_index = self.coord.sequence
+        offset = prediction.sequence.find(self.target.unaligned[sequence_index])
+        if offset < 0:
+            return
+        msa_positions = self.target.msa_positions[sequence_index]
+        sequence_id = self.target.ids[sequence_index]
+        features = []
+        for region in prediction.regions:
+            mapping = map_region_to_msa(region, msa_positions, offset)
+            if not mapping:
+                continue
+            features.append(SequenceFeature(sequence_index, sequence_id, 'disopred', 'natively disordered', region, mapping))
+        self.target.features.add_features(features)
+
+action.register_action(ImportDisopredRegions)

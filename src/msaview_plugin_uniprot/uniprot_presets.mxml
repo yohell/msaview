@@ -1,0 +1,175 @@
+<missy>
+ 
+ <preset name="feature_filter:strand">
+   <name value="strand"/>
+ </preset>
+ 
+ <preset name="feature_filter:helix">
+   <name value="helix"/>
+ </preset>
+ 
+ <preset name="feature_filter:turn">
+   <name value="turn"/>
+ </preset>
+ 
+ <preset name="feature_filter:chain">
+   <name value="chain"/>
+ </preset>
+ 
+ <preset name="feature_filter:modified_residue">
+   <name value="modified residue"/>
+ </preset>
+ 
+ <preset name="feature_filter:metal_binding">
+   <name value="metal binding"/>
+ </preset>
+ 
+ <preset name="feature_colormapping:blue_metal">
+   <filter frompreset="feature_filter:metal_binding"/>
+   <gradient>
+     <colorstop color="blue" position="0"/>
+     <colorstop color="light blue" position="1"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:strand">
+   <filter frompreset="feature_filter:strand"/>
+   <gradient>
+     <colorstop color="#23e536" position="0"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:helix">
+   <filter frompreset="feature_filter:helix"/>
+   <gradient>
+     <colorstop color="#cd391c" position="0"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:turn">
+   <filter frompreset="feature_filter:turn"/>
+   <gradient>
+     <colorstop color="#19b128" position="0"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:suppress_chains">
+   <filter frompreset="feature_filter:chain"/>
+   <group value="yes"/>
+   <suppress value="yes"/>
+   <gradient>
+     <colorstop color="red4" position="0"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:red_unknowns">
+   <gradient>
+     <colorstop color="red4" position="0"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:blue_modified_residues">
+   <filter frompreset="feature_filter:modified_residue"/>
+   <gradient>
+     <colorstop color="#212bc3" position="0"/>
+     <colorstop color="#4e57e9" position="1"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:purple_metal_binders">
+   <filter frompreset="feature_filter:metal_binding"/>
+   <gradient>
+     <colorstop color="#5721c3" position="0"/>
+     <colorstop color="#7541dc" position="1"/>
+   </gradient>
+ </preset>
+
+ <preset name="feature_colormapping:all">
+   <gradient frompreset="gradient:sequence_features_default"/>
+ </preset>
+ 
+ <preset name="colormap.features:uniprot">
+   <map frompreset="feature_colormapping:red_unknowns"/>
+   <map frompreset="feature_colormapping:suppress_chains"/>
+   <map frompreset="feature_colormapping:helix"/>
+   <map frompreset="feature_colormapping:strand"/>
+   <map frompreset="feature_colormapping:turn"/>
+   <map frompreset="feature_colormapping:blue_modified_residues"/>
+   <map frompreset="feature_colormapping:purple_metal_binders"/>
+ </preset>
+ 
+ <preset name="colormap.features:secondary_structure">
+   <map frompreset="feature_colormapping:helix"/>
+   <map frompreset="feature_colormapping:strand"/>
+   <map frompreset="feature_colormapping:turn"/>
+ </preset>
+ 
+ <preset name="colormap.features:allfeatures_nochains">
+   <map frompreset="feature_colormapping:all"/>
+   <map frompreset="feature_colormapping:suppress_chains"/>
+ </preset>
+ 
+ <preset name="renderer.msa.features:uniprot">
+   <colormap frompreset="colormap.features:uniprot"/>
+ </preset>
+ 
+ <preset name="renderer.pos.features:uniprot">
+   <colormap frompreset="colormap.features:uniprot"/>
+ </preset>
+ 
+ <preset name="renderer.msa.features:allfeatures_nochains">
+   <colormap frompreset="colormap.features:allfeatures_nochains"/>
+ </preset>
+ 
+ <preset name="renderer.pos.features:allfeatures_nochains">
+   <colormap frompreset="colormap.features:allfeatures_nochains"/>
+ </preset>
+ 
+ <preset name="view.pos:uniprot_features" frompreset="view.pos:standard">
+   <renderers>
+     <renderer frompreset="renderer.pos.features:uniprot"/>
+   </renderers>
+ </preset>
+ 
+ <preset name="view.pos:allfeatures_nochains" frompreset="view.pos:standard">
+   <renderers>
+     <renderer frompreset="renderer.pos.features:allfeatures_nochains"/>
+   </renderers>
+ </preset>
+ 
+ <preset name="view.msa:uniprot_features" frompreset="view.msa:standard">
+   <renderers>
+     <renderer frompreset="renderer.msa.residue_colors:faded"/>
+     <renderer frompreset="renderer.msa.features:uniprot"/>
+     <renderer frompreset="renderer.msa.letters"/>
+   </renderers>
+ </preset>
+ 
+ <preset name="view.msa:allfeatures_nochains" frompreset="view.msa:standard">
+   <renderers>
+     <renderer frompreset="renderer.msa.residue_colors:faded"/>
+     <renderer frompreset="renderer.msa.features:allfeatures_nochains"/>
+     <renderer frompreset="renderer.msa.letters"/>
+   </renderers>
+ </preset>
+ 
+ <preset name="layout:uniprot_features" frompreset="layout:slim">
+   <msaviews> 
+     <msaview frompreset="view.msa:uniprot_features"/>
+   </msaviews>
+   <posviews>
+     <posview frompreset="view.pos:ruler"/>
+     <posview frompreset="view.pos:uniprot_features"/>
+   </posviews>
+ </preset>
+
+ <preset name="layout:allfeatures_nochains" frompreset="layout:slim">
+   <msaviews> 
+     <msaview frompreset="view.msa:allfeatures_nochains"/>
+   </msaviews>
+   <posviews>
+     <posview frompreset="view.pos:ruler"/>
+     <posview frompreset="view.pos:allfeatures_nochains"/>
+   </posviews>
+ </preset>
+</missy>

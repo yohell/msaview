@@ -1,0 +1,42 @@
+<msaview>
+
+ <!-- CScore msaview -->
+ <preset name="view.msa:cscore" frompreset="view.msa:standard">
+  <renderers>
+   <renderer frompreset="renderer.msa.cscore"/>
+   <renderer frompreset="renderer.msa.letters"/>
+  </renderers>
+ </preset>
+ 
+ <!-- CScore posview -->
+ <preset name="view.pos:cscore" frompreset="view.pos:standard">
+  <renderers>
+   <renderer frompreset="renderer.pos.cscore"/>
+  </renderers>
+ </preset>
+ 
+ <!-- CScore seqview -->
+ <preset name="view.seq:cscore" frompreset="view.seq:standard">
+  <renderers>
+   <renderer frompreset="renderer.seq.cscore"/>
+   <renderer frompreset="renderer.seq.cscore_numbers"/>
+  </renderers>
+ </preset>
+
+ <!-- CScore layout -->
+ <preset name="layout:cscore">
+  <msaviews>
+   <msaview frompreset="view.msa:cscore"/>
+  </msaviews>
+  <seqviews> 
+   <seqview frompreset="view.seq:ruler"/>
+   <seqview frompreset="view.seq:ids"/>
+   <seqview frompreset="view.seq:cscore"/>
+  </seqviews>
+  <posviews>
+   <posview frompreset="view.pos:ruler"/>
+   <posview frompreset="view.pos:cscore"/>
+  </posviews>
+ </preset>
+ 
+</msaview>

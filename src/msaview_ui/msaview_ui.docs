@@ -1,0 +1,221 @@
+# Documentation File Compatible with DocReader v2.0.0 by YoHell
+#
+# SYNTAX:
+#
+# * Anything following a '#' character on a line is disregarded as a comment.
+#   Use "\#" to denote an actual '#' character
+#
+# * The following block tags are supported (always in capital letters):
+#
+#    - Unlabelled block tags:
+#        ADDITIONAL:  [multiple paragraphs]  
+#        COMMAND:     [single paragraph]     
+#        CONTACT:     [multiple paragraphs]  
+#        COPYRIGHT:   [multiple paragraphs]  
+#        DESCRIPTION: [single paragraph]     
+#        GENERAL:     [multiple paragraphs]  
+#        NOTE:        [multiple paragraphs]  
+#        PROGNAME:    [single paragraph]     
+#        PROGRAMMER:  [single paragraph]     
+#        TITLE:       [single paragraph]     
+#        USAGE:       [single paragraph]     
+#        VERSION:     [single paragraph]     
+#        
+#    - Labelled block tags:
+#        ARGUMENT:    [single paragraph]     
+#        OPTION:      [single paragraph]     
+#        FILE:        [multiple paragraphs]  
+#
+# * All blocks start with a tag line that must contain the block tag and 
+#   nothing else, with the possible exception of comments and whitespace.
+#   The Labelled block tag lines are exceptions to this rule, as they are
+#   required to have a label after the block tag, like so:
+#
+#       OPTION: help
+#
+# * In blocks marked with [single paragraph] all text will be concatenated
+#   into a single string, with newlines and blank lines converted to a single
+#   space. In blocks marked with [multiple paragraphs] all consecutive lines of
+#   text with the same indentation will be concatenated into single paragraph
+#   strings that start with a number of spaces corresponding to the indentation
+#   of that paragraph. Consecutive lines with different indent will be stored
+#   in different paragraph strings. If you want two consecutive lines with the
+#   same indent to go into different paragraph strings (as for example in the
+#   case of bulleted lists) you can end the first line with '\\' to override
+#   the concatenation. The only way of avoing preservation of a blank line in
+#   multiple paragraph blocks is to start the line with a '#' character.
+#
+# * In tui, the blocks PROGNAME, VERSION, PROGRAMMER and COMMAND are treated
+#   as documentation variables (DocVars). All other text blocks (and also
+#   FILE: labels) can use these through python string formatting, like so:
+#
+#       "The benefit of using %(progname)s for this kind of problem is..."
+#
+#   This helps in avoiding lagging documentation somewhat. This also means that
+#   actual % characters need to be written as %%.
+
+PROGRAMMER:
+YoHell
+
+COPYRIGHT:
+Not likely.
+
+CONTACT:
+mail:  yohell@ifm.liu.se 
+ or
+phone: +4613 28 24 23
+
+DESCRIPTION:
+Visualize multiple sequence alignments.
+
+OPTION: loglevel
+Control chattiness (must be first option). Default is report warnings or worse. See --HELP for details.
+
+OPTION: show-log-settings
+List the available loggers and their current levels.
+
+OPTION: import-presets
+Include an additional MSAView preset file.*
+
+OPTION: list-presets
+List matching currently available presets. '.' means list all.
+
+OPTION: list-locations
+Show preset file paths when listing presets.
+
+OPTION: show-presets
+Show details for matching presets.
+ 
+OPTION: add
+Add more presets/components into the component tree using PATH,PRESET//NAME. PATH and NAME can be omitted. PRESET can be a preset name or a preset class.*
+
+OPTION: rename
+Change the name of a component.
+
+OPTION: show-tree
+Show the current component tree.
+
+OPTION: show-options
+Show options (and help) for the component at PATH.
+
+OPTION: modify-option
+Change a component option.*
+
+OPTION: show-settings
+Show setting xml for the component (sub)tree at PATH.
+ 
+OPTION: export-preset
+Create a preset for the component (sub)tree at PATH and return the xml.
+ 
+OPTION: save-preset
+Create a preset for the component (sub)tree at PATH and save it to the USER_PRESETS file.
+
+OPTION: delete-preset
+Delete the preset from the USER_PRESETS file and exit.
+
+OPTION: no-gui
+Save image files instead of showing the graphical user interface.  
+
+OPTION: list-actions
+List matching action names. - means list all.
+
+OPTION: show-actions
+Show help for matching actions setting. - means show all.
+
+OPTION: do
+Run an action, as ACTION [PATH] [PARAM=VALUE [ ... ]]. First matching name will be run.* 
+
+ARGUMENT: msa_file
+A fasta format MSA to visualize.
+
+GENERAL:
+This program provides highly flexible visualization of multiple sequence alignments (MSA) 
+which can be shown in a graphical user interface or saved directly to an image file in a
+variety of formats.
+ 
+Use --add to add components to your layout, use --modify-option to fine tune settings if needed,
+and use --do to run actions (zoom-positions, select-sequences, export-image...).
+Adding no components means --add layout:default. Options marked with a * can be used repeatedly, 
+see --HELP for execution order and help on PATHs and matching ACTION NAMES.
+
+ADDITIONAL: 
+PATHs:
+  PATHs in options are used to specify a single component. PATHs can be a component name, or a 
+  '/' separated component tree search path on the form BASE[/CLASS[/CLASS2[...]]],
+  where CLASS are the preset classes for progressive descendants. Either BASE or the rest
+  of the path can be omitted. The search will start from the component named BASE, or from 
+  the root if omitted.
+
+Actions:
+  Actions are easiest accessed via right-click or menus in the GUI, but can also be run
+  from the command line using --do. The latter is done on the form
+    --do ACTION [PATH] [PARAM=VALUE [ ... ]]
+  where ACTION and PARAM are names consisting of one or more "dash-separated-words".  
+  These are matched from the beginning, "word for word" and all given words have 
+  to match (eg: "poster-image" matches the action name "export-posterized-image"),
+  although an exact matche takes precedence. Action names are matched in alphabetical order
+  and parameter names are matched in the order given by the action (which are usually 
+  arranged in some order of convenience). Use --list-actions to match and list 
+  the available actions, and --show-actions to show their parameter names and defaults.
+  
+  If PATH is omitted then MSAView searches for a suitable target for the action
+  starting from the root.
+
+Execution order:\
+  1. --include-presets (fully extend preset library)\
+  2. --add (build full component tree)\
+  3. --rename (convenience for following steps)\
+  4. --modify-option (fine tuning)\
+  5. others, except --do.\
+  6. Read MSA_FILE\
+  7. --do (run actions)\
+  8. Show GUI (if not --no-gui, else repeat from 6)\
+
+Error logging:
+  %(progname)s can produce a lot of information on what is going on, but by default
+  only warnings are written to stderr. The --loglevel option and the MSAVIEW_LOGLEVEL
+  environment variable control the amount of output that will be generated from which 
+  parts of the system. Examples:
+    --loglevel warn\
+    --loglevel info,data.msa=debug\
+    --loglevel 40,module.plugins=20,module.plugins.cscore=debug
+  
+  In the first example, all messages that are warnings will be displayed, for
+  the entire system (this is actually the default). The second example logs information 
+  messages from the entire system, but also includes debug messages from the msaview.data.msa
+  subsystem. The third example logs error (40) messages or worse from the entire system, info (20)
+  messages for the plugin module and debug messages from the cscore plugin module. All
+  levels are minimum requirements; all messages with equal or higher severity will be logged.
+  
+  In both cases, is a comma separated list of LEVELDEFs is used.
+  A LEVELDEF is LOGGERNAME=LEVEL, where LEVEL can be an integer value, or any of the 
+  predefined level names:
+    DEBUG    (10)\
+    INFO     (20)\
+    WARNING  (30)\
+    ERROR    (40)\
+    CRITICAL (50)
+  Only the beginning of the name is needed (case insensitive). 
+  
+  LOGGERNAMEs generally are the same as the 
+  msaview_classname prefixed with "msaview.", or the module name prefixed with 
+  "msaview.module." (e.g: msaview.data.msa or msaview.module.plugins). The "msaview." 
+  prefix is optional. LOGGERNAME is omitted, the root logger "msaview" is assumed. 
+  You can list all available loggers using --show-log-settings, which also gives 
+  their current LEVELs.
+
+Evironment variables:
+  MSAVIEW_LOGLEVEL has the same syntax as the --loglevel option. Changes in --loglevel
+  take precedence. 
+
+FILE: USER_PRESETS
+Location: ~/.msaview/presets/user_presets.mxml\
+This file contains saved user presets. The file is automatically generated
+and should not be edited. Use MSAView programs (like %(progname)s) to manipulate 
+the presets in this file. 
+
+However, all .mxml files in the ~/.msaview/presets directory will be read by
+MSAView at program startup, so any presets contained in these files will be 
+available in all MSAView applications.   
+
+# END
