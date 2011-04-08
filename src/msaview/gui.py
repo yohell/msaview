@@ -606,8 +606,8 @@ class ZoomView(gtk.DrawingArea):
 
     def do_button1_single_press_event(self, event):
         sel = self._get_selection_overlay()
-        # the user is only allowed to select stuff if there's a selection to affect and a way of showing it. 
-        if sel is None or sel.selection is None:
+        # the user is only allowed to select stuff if there's something to sleect, a selection to affect and a way of showing it. 
+        if sel is None or sel.selection is None or not sel.selection.msa:
             return
         selection = sel.selection
         msa = selection.msa
