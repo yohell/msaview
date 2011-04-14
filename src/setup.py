@@ -11,19 +11,22 @@ packages = ['msaview',
             'msaview_plugin_pdb', 
             'msaview_plugin_pfam', 
             'msaview_plugin_pymol', 
-            'msaview_plugin_scoring_matrix', 
             'msaview_plugin_stockholm', 
+            'msaview_plugin_substitution_matrix', 
             'msaview_plugin_uniprot',
             ]
 py_modules = ['msaview_plugin_backbone', 
               'msaview_plugin_disopred', 
               ]
-version = __import__('msaview').__version__
-versions = dict((name, getattr(__import__(name), '__version__', version)) for name in packages + py_modules)
+for name in packages + py_modules:
+    print name
+    getattr(__import__(name), '__version__')
+    
+versions = dict((name, getattr(__import__(name), '__version__')) for name in packages + py_modules)
 provides = ["%s (%s)" % (name, versions[name]) for name in packages + py_modules]
 
 setup(name='msaview',
-      version=version,
+      version=versions['msaview'],
       description='Fast and flexible visualisation of multiple sequence alignments.',
       platforms='OS Independent',
       author='Joel Hedlund',
@@ -40,8 +43,17 @@ setup(name='msaview',
                              ),
                    Extension('msaview_plugin_cscore._cscore', 
                              ['msaview_plugin_cscore/cscore.cpp', 
-                              'msaview_plugin_cscore/substitution_matrix.cpp', 
+                              'msaview_plugin_substitution_matrix/substitution_matrix.cpp', 
                               ], 
+                             include_dirs=['msaview_plugin_substitution_matrix'],
+                             extra_compile_args=['-O3'],
+                             extra_link_args=['-O3'],
+                             ),
+                   Extension('msaview_plugin_substitution_matrix._substitution_matrix', 
+                             ['msaview_plugin_substitution_matrix/substitution_matrix.i',
+                              'msaview_plugin_substitution_matrix/substitution_matrix.cpp',
+                              ],
+                             swig_opts=['-c++'], 
                              extra_compile_args=['-O3'],
                              extra_link_args=['-O3'],
                              ),
@@ -52,7 +64,7 @@ setup(name='msaview',
                     'msaview_plugin_cscore': ['*.mxml'],
                     'msaview_plugin_ensembl': ['*.mxml'],
                     'msaview_plugin_pymol': ['*.mxml'],
-                    'msaview_plugin_scoring_matrix': ['matrices/*.mat'],
+                    'msaview_plugin_substitution_matrix': ['matrices/*.mat'],
                     'msaview_plugin_uniprot': ['*.mxml'],
                     },
       license=open('LICENSE.txt').read(),

@@ -1,10 +1,6 @@
-import os
+__version__ = "0.9.0"
 
-try:
-    import psyco
-    psyco.full()
-except:
-    pass
+import os
 
 import numpy
 

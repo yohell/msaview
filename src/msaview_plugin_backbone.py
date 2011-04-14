@@ -1,3 +1,5 @@
+__version__ = "0.9.0"
+
 import msaview
 
 from msaview.component import Change
