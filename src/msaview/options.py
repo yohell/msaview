@@ -331,7 +331,11 @@ def _read_x11_colors(path=None):
     return colors
 
 class ColorCompletion(gtk.EntryCompletion):
-    _colors = _read_x11_colors()
+    system_x11_rgb_colordef_file = '/usr/share/X11/rgb.txt'
+    if os.path.isfile(system_x11_rgb_colordef_file):
+        _colors = _read_x11_colors(system_x11_rgb_colordef_file)
+    else:
+        _colors = _read_x11_colors()
     def __init__(self):
         gtk.EntryCompletion.__init__(self)
         model = gtk.ListStore(str)
