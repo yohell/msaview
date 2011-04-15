@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """MSAView - Fast and flexible visualisation of multiple sequence alignments.
 
 Copyright (c) 2011 Joel Hedlund.
@@ -45,42 +46,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
-
-__version__ = "0.9.0"
-
-import os
 import sys
 
-import log
-
-import action
-import preset
-import component
-
-# 3 convenience imports:
-from preset import presets
-from component import Root
-from action import run_action
- 
-preset.presets.add_to_preset_path(os.path.join(os.path.dirname(__file__), 'data')),
-preset.presets.add_to_preset_path('/etc/msaview/presets') 
-plugin_path = [os.path.expanduser(os.path.join('~', '.msaview', 'plugins')),
-               os.path.join(os.path.dirname(__file__), 'plugins')]
-sys.path = sys.path[:1] + plugin_path + sys.path[1:]
-
-import adjustments
-import plugins
-import color
-import gui
-import msa
-import options
-import overlays
-import renderers
-import sequence_information
-import visualization
-
-from preset import (USER_PRESET_DIR, 
-                    USER_PRESET_FILE)
-preset.presets.add_to_preset_path(USER_PRESET_DIR)
-preset.presets.import_presets()
+from msaview_ui import main
+if __name__ == '__main__':
+    x = main(sys.argv)
+    if x:
+        sys.exit(int(x))
 
