@@ -36,15 +36,11 @@ from msaview.renderers import (Labeler,
                                TransformList, 
                                integrate_ancestor_msa)
 
-from msaview_plugin_scoring_matrix import get_matrix
+from msaview_plugin_substitution_matrix import get_matrix
 
 module_logger = log.get_plugin_module_logger(__file__)
 
-try:
-    # Import extension module
-    import _cscore
-except:
-    _cscore = None
+import _cscore
     
 presets.add_to_preset_path(__file__)
 
