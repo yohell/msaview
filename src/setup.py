@@ -1,4 +1,6 @@
 from distutils.core import Extension, setup
+import os
+import subprocess
 
 packages = ['msaview', 
             'msaview_ui',
@@ -18,9 +20,15 @@ packages = ['msaview',
 py_modules = ['msaview_plugin_backbone', 
               'msaview_plugin_disopred', 
               ]
+
 for name in packages + py_modules:
-    print name
-    getattr(__import__(name), '__version__')
+    try:
+        getattr(__import__(name), '__version__')
+    except:
+        build_script = os.path.join(os.path.dirname(__file__), name, 'build.sh')
+        if not os.path.isfile(build_script):
+            raise
+        subprocess.Popen([build_script])
     
 versions = dict((name, getattr(__import__(name), '__version__')) for name in packages + py_modules)
 provides = ["%s (%s)" % (name, versions[name]) for name in packages + py_modules]
