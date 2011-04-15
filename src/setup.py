@@ -70,13 +70,7 @@ py_modules = ['msaview_plugin_backbone',
               ]
 
 for name in packages + py_modules:
-    try:
-        getattr(__import__(name), '__version__')
-    except:
-        build_script = os.path.join(os.path.dirname(__file__), name, 'build.sh')
-        if not os.path.isfile(build_script):
-            raise
-        subprocess.Popen([build_script])
+    getattr(__import__(name), '__version__')
     
 versions = dict((name, getattr(__import__(name), '__version__')) for name in packages + py_modules)
 provides = ["%s (%s)" % (name, versions[name]) for name in packages + py_modules]
