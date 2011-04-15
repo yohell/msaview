@@ -1,0 +1,12 @@
+.project
+.pydevproject
+*.pyc
+*.pyo
+*.so
+*.o
+/src/msaview_plugin_substitution_matrix/substitution_matrix_wrap.cpp
+/src/msaview_plugin_substitution_matrix/substitution_matrix.py
+/src/build
+/src/dist
+/src/MANIFEST
+
