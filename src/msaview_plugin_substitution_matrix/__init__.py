@@ -43,21 +43,26 @@ THE SOFTWARE.
 
 __version__ = "0.9.0"
 
-# The substitution_matrix class is the only useful thing from the wrapper python module
-from substitution_matrix import SubstitutionMatrix
+try:
+    from substitution_matrix import SubstitutionMatrix
 
-# Provide builtin matrix enum (it is continuous) as a sorted list matrixes = [NAMES]
-matrixes = [name.lstrip('_') for name in dir(SubstitutionMatrix) if name.startswith('_') and not name.startswith('__')]
-matrixes.sort(key=lambda name: getattr(SubstitutionMatrix, '_' + name))
-# Also provide them as module level constants, as MATRIX_* (e.g: MATRIX_BLOSUM62...)
-for name in matrixes:
-    locals()['MATRIX_' + name] = getattr(SubstitutionMatrix, '_' + name)
+    # Provide builtin matrix enum (it is continuous) as a sorted list matrixes = [NAMES]
+    # and as module level constants MATRIX_* (e.g: MATRIX_BLOSUM62...)
+    matrixes = [name.lstrip('_') for name in dir(SubstitutionMatrix) if name.startswith('_') and not name.startswith('__')]
+    matrixes.sort(key=lambda name: getattr(SubstitutionMatrix, '_' + name))
+    for name in matrixes:
+        locals()['MATRIX_' + name] = getattr(SubstitutionMatrix, '_' + name)
+    
+    # Helper if you want to fetch matrixes by name.
+    def get_matrix(name):
+        try:
+            matrix = matrixes.index(name.upper())
+        except:
+            raise ValueError('not a builtin matrix name')
+        return SubstitutionMatrix(matrix)
 
-# Helper if you want to work with strings instead.
-def get_matrix(name):
-    try:
-        matrix = matrixes.index(name.upper())
-    except:
-        raise ValueError('not a builtin matrix name')
-    return SubstitutionMatrix(matrix)
-
+except:
+    SubstitutionMatrix = None
+    matrixes = []
+    def get_matrix(name):
+        raise NotImplementedError('not available, backend extension module could not be imported')

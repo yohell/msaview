@@ -171,14 +171,17 @@ class CScore(Component):
         self.divs = numpy.empty((len(self.msa), 256), float)
         column_uarray = numpy.frombuffer(self.msa.column_array.data, numpy.uint8)
         column_uarray.shape = self.msa.column_array.shape
-        aas = self.scoring_matrix.residues()
+        aas = self.scoring_matrix.get_alphabet()
         gaps = numpy.zeros(256, bool)
         gaps[[ord(aa) for aa in self.msa.gapchars]] = True
         indices = numpy.zeros(256, int)
         indices[:] = -1
-        vector_length = len(self.scoring_matrix)
+        vector_length = len(aas)
         indices[[ord(aa) for aa in aas]] = range(vector_length)
-        scores = self.scoring_matrix.scores
+        scores = numpy.zeros((vector_length, vector_length), dtype=float)
+        for i in range(len(aas)):
+            for j in range(i, len(aas)):
+                scores[i, j] = scores[j, i] = self.scoring_matrix.lookup(aas[i], aas[j])
         vectors = numpy.empty(scores.shape, float)
         diff = numpy.empty(vector_length, float)
         distance_sums = numpy.empty(vector_length, float)
@@ -285,7 +288,7 @@ class CScore(Component):
         cscores = numpy.empty(len(self.msa), float)
         divergences_t = numpy.empty(self.msa.column_array.shape, float)
         conformances = numpy.zeros(len(self.msa.sequences), float)
-        if False:#_cscore:
+        if _cscore:
             for i in range(len(self.msa)):
                 _cscore.process_column(cscores, divergences_t, conformances, self.msa.column_array, i)
         else:
