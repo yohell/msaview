@@ -114,9 +114,7 @@ class CScore(Component):
     
     def __init__(self):
         Component.__init__(self)
-        self.scoring_matrix = get_matrix('gonnet250')
-        self._worker = None
-        self.divs = None
+        self.substitution_matrix = get_matrix('blosum62')
         
     cscores = prop('cscores', readonly=True)
     divergences = prop('divergences', readonly=True) 
@@ -129,49 +127,10 @@ class CScore(Component):
         self.propvalues['msa'] = msa
         self.update()
 
-    def _reset_internals(self):
-        if self._worker is not None:
-            self.get_compute_manager().source_remove(self._worker)
-        self._worker = None
-        self._vectors = None
-        self._centroids = None
-        self._distances = None
-        self._cscores = None
-        self._divergences = None
-        self._sequence_cscores = None
-    
-    def _update_cscores_worker_function(self):
-        if not self.msa:
-            return
-        if not self._progress:
-            iSeq = len(self.msa.sequences)
-            iPos = len(self.msa)
-            iRes = len(self.scoring_matrix)
-            self._vectors = numpy.empty((iSeq, iPos, iRes))
-            self._known = numpy.zeros(iPos)
-            self._centroids = numpy.zeros((iPos, iRes))
-            self._distances = numpy.empty((iSeq, iPos))
-            self._cscores = numpy.empty(iPos)
-            self._divergences = numpy.empty((iSeq, iPos))
-            self._sequence_cscores = numpy.zeros(iSeq)
-            self._progress = 0
-        stop = min(self._progress + self.job_size, len(self.msa))
-        if self._progress < stop:
-            self._calculate_scores(self._progress, stop)
-        self._progress = min(self._progress + self.job_size, len(self.msa))
-        if self._progress < len(self.msa):
-            # We're not done. Return True to be called again when there's time available.
-            return True
-        self.propvalues['cscores'] = self._cscores.round(5)
-        self.propvalues['divergences'] = self._divergences.round(5)
-        self.propvalues['sequence_cscores'] = self._sequence_cscores.round(5)
-        self.emit('changed', Change('cscores'))
-
-    def new_calculate_scores(self, cscores, divergences_t, conformances):
-        self.divs = numpy.empty((len(self.msa), 256), float)
+    def calculate_scores(self, cscores, divergences_t, conformances):
         column_uarray = numpy.frombuffer(self.msa.column_array.data, numpy.uint8)
         column_uarray.shape = self.msa.column_array.shape
-        aas = self.scoring_matrix.get_alphabet()
+        aas = self.substitution_matrix.get_alphabet()
         gaps = numpy.zeros(256, bool)
         gaps[[ord(aa) for aa in self.msa.gapchars]] = True
         indices = numpy.zeros(256, int)
@@ -181,13 +140,17 @@ class CScore(Component):
         scores = numpy.zeros((vector_length, vector_length), dtype=float)
         for i in range(len(aas)):
             for j in range(i, len(aas)):
-                scores[i, j] = scores[j, i] = self.scoring_matrix.lookup(aas[i], aas[j])
+                scores[i, j] = scores[j, i] = self.substitution_matrix.lookup(aas[i], aas[j])
+        max_distance_square = 0.0
+        for i in range(len(aas) - 1):
+            for j in range(i+1, len(aas)):
+                max_distance_square = max(sum(d ^ 2 for d in (scores[i] - scores[j])), max_distance_square)
+        halfmax = numpy.sqrt(max_distance_square) / 2
         vectors = numpy.empty(scores.shape, float)
         diff = numpy.empty(vector_length, float)
         distance_sums = numpy.empty(vector_length, float)
         centroid = numpy.empty(vector_length, float)
         divs = numpy.empty(256, float)
-        halfmax = self.scoring_matrix.max_distance / 2
         N = float(len(self.msa.sequences))
         N_1 = N - 1
         for pos in range(0, len(self.msa)):
@@ -247,39 +210,9 @@ class CScore(Component):
                 # denominator is multiplied by 2 because we really want to divide by maxdist.
                 div = cscore * distance_sums[index] / (2 * halfmax * count) + unknown / N_1
                 divs[i] = max(min(div, 1), 0)
-            self.divs[pos] = divs
             divergences_t[pos] = numpy.take(divs, column_uarray[pos])
             conformances += divergences_t[pos]
             
-        #divergences = numpy.frombuffer(divergences_t.T.tostring(), float)  
-        #divergences.shape = self.msa.sequence_array.shape  
-            
-    @log.trace
-    def old_update(self):
-        self._progress = 0
-        if not (self.msa):
-            return
-        old = 'old' in os.environ.get('MSAVIEW_CSCORE_MODE', 'new')
-        if old or not _cscore:
-            self._worker = self.get_compute_manager().idle_add(self._update_cscores_worker_function)
-            return
-        self.logger.debug("calculating cscores, new style.")
-        t = time.time()
-        cscores = numpy.empty(len(self.msa), float)
-        tmp_divergences = numpy.empty(self.msa.column_array.shape, float)
-        conformances = numpy.zeros(len(self.msa.sequences), float)
-        for i in range(len(self.msa)):
-            _cscore.process_column(cscores, tmp_divergences, conformances, self.msa.column_array, i)
-        conformances = 1 - conformances / len(self.msa)
-        self.logger.debug("done in %.3fs.", time.time() - t)
-        self._progress = len(self.msa)
-        divergences = numpy.frombuffer(tmp_divergences.T.tostring(), dtype=float)
-        divergences.shape = self.msa.sequence_array.shape
-        self.propvalues.update(cscores=cscores, 
-                               divergences=divergences, 
-                               sequence_cscores=conformances)
-        self.emit('changed', Change('cscores'))
-
     @log.trace
     def update(self):
         self._progress = 0
@@ -292,7 +225,7 @@ class CScore(Component):
             for i in range(len(self.msa)):
                 _cscore.process_column(cscores, divergences_t, conformances, self.msa.column_array, i)
         else:
-            self.new_calculate_scores(cscores, divergences_t, conformances)
+            self.calculate_scores(cscores, divergences_t, conformances)
         conformances = 1 - conformances / len(self.msa)
         self._progress = len(self.msa)
         divergences = numpy.frombuffer(divergences_t.T.tostring(), dtype=float)
@@ -314,50 +247,6 @@ class CScore(Component):
             self.clear()
             self.update()
 
-    def _calculate_scores(self, start=None, stop=None):
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self.msa)
-        halfmax = self.scoring_matrix.max_distance / 2
-        N = len(self.msa.sequences)
-        def bound(a, lower=None, upper=None):
-            conditions = []
-            choices = []
-            if lower is not None:
-                conditions.append(a < lower)
-                choices.append(lower)
-            if upper is not None:
-                conditions.append(a > upper)
-                choices.append(upper)
-            return numpy.select(conditions, choices, default=a)
-        for pos in range(start, stop):
-            for seq, sequence in enumerate(self.msa.sequences):
-                letter = sequence[pos] if pos < len(sequence) else '-'
-                r = self.scoring_matrix.residue_index.get(letter) if letter else None
-                if r is not None:
-                    vector = self.scoring_matrix.scores[r]
-                    self._vectors[seq,pos,:] = vector
-                    self._centroids[pos] += vector
-                    self._known[pos] += 1
-                else:
-                    self._vectors[seq,pos,:] = -10 * halfmax # Arbitrary large negative vector.
-            if self._known[pos]:
-                self._centroids[pos] /= float(self._known[pos])
-            else:
-                self._centroids[pos] = 10 * halfmax # Arbitrary large positive vector.
-        tmp_distances = numpy.apply_along_axis(numpy.linalg.norm, 2, self._centroids[start:stop] - self._vectors[:, start:stop])
-        self.logger.warning('improperly bounding distances.')
-        self._distances[:, start:stop] = bound(tmp_distances, upper=halfmax)
-        tmp_penalties = halfmax * (N - self._known[start:stop]) * (N / float(N-1) - 1)
-        tmp_cscores = 1 - (self._distances[:, start:stop].sum(0) + tmp_penalties) / N / halfmax
-        self._cscores[start:stop] = bound(tmp_cscores, lower=0, upper=1)
-
-        tmp_conformity = 1 - self._distances[:,start:stop] * self._cscores[start:stop] / halfmax 
-        tmp_conformity -= self.msa.ungapped[:,start:stop] * (N - self._known[start:stop]) / (N - 1)
-        self._divergences[:,start:stop] = 1 - bound(tmp_conformity, lower=0, upper=1)
-        self._sequence_cscores += tmp_conformity.sum(1) / len(self.msa)
-        
     def integrate(self, ancestor, name=None):
         msa = integrate_ancestor_msa(self, ancestor)
         self.msaview_name = Component.integrate(self, msa, name)

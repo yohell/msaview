@@ -59,6 +59,11 @@ from plotting import (chequers,
 from selection import (Area,
                        Region)
 
+try:
+    import _renderers
+except:
+    _renderers = None
+    
 # NOT TODO:
 # * Renderers should keep the __hash__ silliness in order to work well with the cache. think for example alpha change and caching.
   
@@ -440,9 +445,7 @@ class ResidueColors(ScaledImage):
             colormap = colormap.flatten()
         except AttributeError:
             pass
-        try:
-            import _renderers
-        except:
+        if not _renderers:
             for y, sequence in enumerate(msa.sequences):
                 for x, letter in enumerate(sequence):
                     array[y, x] = colormap.get(letter, unrecognized).array

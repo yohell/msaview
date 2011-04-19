@@ -339,8 +339,8 @@ void process_column(
 }
 
 //static const ScoringMatrix gonnet = ScoringMatrix(substitution_matrix::_GONNET);
-//static const ScoringMatrix gonnet = ScoringMatrix(substitution_matrix::_BLOSUM62);
-static const ScoringMatrix gonnet = ScoringMatrix(substitution_matrix::_GONNET250);
+//static const ScoringMatrix gonnet250 = ScoringMatrix(substitution_matrix::_GONNET250);
+static const ScoringMatrix blosum62 = ScoringMatrix(substitution_matrix::_BLOSUM62);
 
 static PyObject *
 _cscore_process_column_wrapper(PyObject *dummy, PyObject *args)
@@ -370,7 +370,7 @@ _cscore_process_column_wrapper(PyObject *dummy, PyObject *args)
 
 	// Get work done.
 	process_column(
-			gonnet,
+			blosum62,
 			&column_data[n_sequences * position],
 			n_sequences,
 			&cscores_data[position],
