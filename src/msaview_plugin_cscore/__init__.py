@@ -79,7 +79,10 @@ from msaview_plugin_substitution_matrix import get_matrix
 
 module_logger = log.get_plugin_module_logger(__file__)
 
-import _cscore
+try:
+    import _cscore
+except:
+    _cscore = None
     
 presets.add_to_preset_path(__file__)
 
@@ -447,7 +450,7 @@ class DivergenceRenderer(Renderer):
             return
         image = cairo.ImageSurface(cairo.FORMAT_ARGB32, divergences.shape[1], divergences.shape[0])
         image.flush()
-        if False: #_cscore:
+        if _cscore:
             arr = numpy.frombuffer(image.get_data(), dtype=numpy.uint8)
             arr.shape = (divergences.shape[0], divergences.shape[1], -1)
             _cscore.divergences_renderer_colorize(arr, divergences, self.gradient)

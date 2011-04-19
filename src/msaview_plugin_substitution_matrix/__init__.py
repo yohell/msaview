@@ -103,5 +103,3 @@ except:
     SubstitutionMatrix = DummyBlosum62
     matrixes = ['BLOSUM62']
     MATRIX_BLOSUM62 = 3
-
-help(SubstitutionMatrix)
