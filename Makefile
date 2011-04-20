@@ -20,7 +20,20 @@ install:
 	(cd src; python setup.py install --prefix ${prefix})
 
 clean:
+	rm -rf pack
 	rm -rf ${generated}
 	for generated_pattern in ${generated_patterns}; do \
 		find src -name $$generated_pattern -delete; \
 	done
+
+sdist:
+	(cd src; python setup.py sdist)
+	
+pack: sdist
+	mkdir -p pack/deb
+	cp src/dist/msaview-*.tar.gz pack/deb
+	rename 's/-/_/; s/.tar.gz/.orig.tar.gz/' pack/deb/msaview-* 
+	(cd pack/deb; tar xf msaview_*)
+	(cd pack/deb/*; \
+	 [ ! -e ../../../debian ] && ( dh_make; mv debian ../../.. ); \
+	 ln -s ../../../debian)  

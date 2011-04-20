@@ -1,0 +1,30 @@
+Source: msaview
+Section: science
+Priority: optional
+Maintainer: Joel Hedlund <yohell@ifm.liu.se>
+Build-Depends: debhelper (>= 7.0.50~), python-support (>= 0.9)
+Standards-Version: 3.9.1
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://git.debian.org/collab-maint/msaview.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/msaview.git;a=summary
+XS-Python-Version: 2.6
+
+Package: msaview
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
+Description: fast and flexible multiple sequence alignment visualiser
+ MSAView is a modular, configurable and extensible package for analysing and 
+ visualising multiple sequence alignments and sequence features. It can import 
+ and display data from online sources, and it can launch external viewers for 
+ additional details, such as structures and database pages. MSAView is highly
+ configurable and has a user extendable preset library, as well as a plugin 
+ architecture which allows for straightforward extension of the program's 
+ capabilities.
+ .
+ MSAVIew has a fast graphical user interface that remains responsive even for 
+ large datasets, as well as a powerful command line client which allows the user
+ to generate consistent views for hundreds of protein families at a time. All 
+ the program's functionality is also directly accessible via the python API for
+ more advanced operations. 
