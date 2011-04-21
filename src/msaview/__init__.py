@@ -51,7 +51,7 @@ __version__ = "0.9.0"
 import os
 import sys
 
-import log
+import msaview_logging as log
 
 import action
 import preset

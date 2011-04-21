@@ -55,6 +55,10 @@ except ImportError:
 
 import gtk
 
+# Get logging in place before importing msaview, to enable import time logging.  
+import msaview_logging
+msaview_logging.parse_loglevels()
+
 import msaview
 
 __version__ = msaview.__version__
@@ -310,7 +314,7 @@ def main(argv):
             return "An msaview action definition, as ACTION [PATH] [PARAM=VALUE [ ... ]]"
         
     oUI = tui.tui(progname = 'MSAViewUI', command = 'msaview', versionstr = __version__)
-    oUI.makeoption(msaview.log.loglevel_args[0].strip('-'), formats.Str, "''", msaview.log.loglevel_args[1].strip('-'))
+    oUI.makeoption('loglevel', formats.Str, "''", '-L')
     oUI.makeoption('show-log-settings', formats.Flag, "'no'")
     oUI.makeoption('import-presets', formats.ReadableFile(acceptemptystring=True), "''", 'i', recurring=True)
     oUI.makeoption('list-presets', formats.Format('RegEx', re.compile, lambda r: repr(r.pattern) if r else "''", acceptemptystring=True), "''", 'l')
@@ -335,6 +339,7 @@ def main(argv):
         dsxOptions = oUI.options()
         msa_files = oUI.posargs()[0]
         if dsxOptions['loglevel']:
+            # Correct use of this option is handled by the msaview.log module.
             if argv[1] not in msaview.log.loglevel_args:
                 msg = "%s: this option must be first if used." % msaview.log.loglevel_args[0]
                 raise tui.InvalidOptionError(msg)

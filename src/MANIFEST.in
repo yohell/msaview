@@ -1,0 +1,2 @@
+global-include *.h *.mxml *.txt
+include msaview_ui/msaview_ui.docs

@@ -12,6 +12,7 @@ levels = {'debug': logging.DEBUG,
 
 loglevel_args = ('--loglevel', '-L')
 loglevel_env_var = "MSAVIEW_LOGLEVEL"
+argv_parsed = False
 logger_name = "msaview"
 
 def get_logger(name):
@@ -62,13 +63,45 @@ def setLevels(literal):
         if name == logger_name:
             level = max(level, 1)
         get_logger(name).setLevel(level)
-        #print "setting %s to loglevel %s" % (name.lower(), level)
 
-if loglevel_env_var in os.environ:
-    setLevels(os.environ[loglevel_env_var])
+def parse_env(force=False, env_var=loglevel_env_var):
+    """Parse loglevel settings from environment variables.
     
-if len(sys.argv) > 1 and sys.argv[1] in loglevel_args:
-    setLevels(sys.argv[2])
+    This function will do nothing if argv_parsed is True, since argv 
+    settings should take precedence, but this behaviour can be overridden 
+    using force. argv_parsed is set for instance by parse_argv(). 
+       
+    """
+    if argv_parsed and not force:
+        return
+    if env_var in os.environ:
+        setLevels(os.environ[env_var])
+
+def parse_argv(args=loglevel_args, argv=sys.argv):
+    """Rudimentary command line argument parser.
+    
+    Only argv[1:3] are regarded. Any other occurences of args are 
+    intentionally disregarded. This function is intentionally made as 
+    simple as possible, to reduce the possibilities for the user to confuse
+    itself.
+     
+    No attempt is made to provide useful feedback to the user, as this 
+    should rather be don in the calling application but should 
+    rather be done  this is rather left as an exercise for the 
+    application programmer.
+    
+    Any calls to parse_env should precede calls to this function, as argv 
+    settings should take precedence over environment variables. 
+    
+    """
+    argv_parsed = True
+    if len(argv) > 1 and argv[1] in args:
+        setLevels(sys.argv[2])
+    
+def parse_loglevels():
+    """Do the usual stuff with environment vars and command line args."""
+    parse_env()
+    parse_argv()
     
 def trace(f):
     """Decorator logs method enter/exit (info/debug) with the class logger."""

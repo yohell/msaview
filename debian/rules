@@ -11,3 +11,10 @@
 
 %:
 	dh $@ 
+
+#override_dh_installchangelogs:
+#	dh_installchangelogs CHANGES.txt
+	
+override_dh_installdocs:
+	dh_installdocs -XLICENSE.txt
+	

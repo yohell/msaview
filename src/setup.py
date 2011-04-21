@@ -47,8 +47,6 @@ THE SOFTWARE.
 """
 
 from distutils.core import Extension, setup
-import os
-import subprocess
 
 packages = ['msaview', 
             'msaview_ui',
@@ -116,8 +114,8 @@ setup(name='msaview',
                     'msaview_plugin_cscore': ['*.mxml'],
                     'msaview_plugin_ensembl': ['*.mxml'],
                     'msaview_plugin_pymol': ['*.mxml'],
-                    'msaview_plugin_substitution_matrix': ['matrices/*.mat'],
                     'msaview_plugin_uniprot': ['*.mxml'],
+                    'msaview_ui': ['msaview_ui.docs'],
                     },
       license=open('LICENSE.txt').read(),
       long_description='\n' + open('README.txt').read(),
