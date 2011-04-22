@@ -43,9 +43,11 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+import os
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
+import os
 import re
 import sys
 try:
@@ -54,10 +56,6 @@ except ImportError:
     import xml.etree.ElementTree as etree
 
 import gtk
-
-# Get logging in place before importing msaview, to enable import time logging.  
-import msaview_logging
-msaview_logging.parse_loglevels()
 
 import msaview
 
@@ -137,22 +135,42 @@ def run_actions(root, action_defs):
         run_action(root, *action_def)
     while gtk.events_pending():
         gtk.main_iteration(False)
-        
-def mview(m, msa_files, action_defs=None, gui=False):
-    msa = m.find_descendant('data.msa')
-    if gui:
-        g = make_gui(m)
-        if msa_files:
-            msa.read_fasta(open(msa_files[0]))
-        show_gui(g, action_defs=action_defs)
-        return
-    if not msa_files:
-        run_actions(m, action_defs)
-        return
-    for msa_file in msa_files:
-        msa.read_fasta(open(msa_file))
-        run_actions(m, action_defs)
 
+class Session(object):
+    def __init__(self, root=None, action_defs=None, msa_files=None, show_gui=False, config=None):
+        self.root = root
+        self.action_defs = action_defs
+        self.msa_files = msa_files
+        self.show_gui = show_gui
+        self.config = config
+
+    def run(self):
+        """Run session, return exit code."""
+        try:
+            msa = self.root.find_descendant('data.msa')
+            if self.show_gui:
+                g = make_gui(self.root)
+                if self.msa_files:
+                    msa.read_fasta(open(self.msa_files[0]))
+                show_gui(g, action_defs=self.action_defs)
+                return
+            if not self.msa_files:
+                run_actions(self.root, self.action_defs)
+                return
+            for msa_file in self.msa_files:
+                msa.read_fasta(open(msa_file))
+                run_actions(self.root, self.action_defs)
+        except KeyboardInterrupt:
+            if self.config:
+                print >> sys.stderr, self.config.shorthelp()
+            return 1
+        except OptionError, e:
+            if self.config:
+                print self.config.shorthelp()
+            print >> sys.stderr, "ERROR: %r is not an acceptable argument for %s (%s)\n" % (e.details[1], e.details[0], e.details[2])
+            return 1
+        return 0
+        
 # Parameter parsing helpers:
 
 class OptionError(Exception):
@@ -263,11 +281,12 @@ def delete_preset(preset_name, option_name='--delete-preset'):
             raise OptionError(option_name, preset_name, 'no such user preset')
         raise
 
-def main(argv):
-    import os
+def create_session(argv=sys.argv):
+    """Parse config and return session object or exit code."""
     import tui
     from tui import formats 
-    class Action(tui.formats.Format):
+    
+    class UIAction(tui.formats.Format):
         def __init__(self):
             pass
         
@@ -313,86 +332,87 @@ def main(argv):
         def docs(self):
             return "An msaview action definition, as ACTION [PATH] [PARAM=VALUE [ ... ]]"
         
-    oUI = tui.tui(progname = 'MSAViewUI', command = 'msaview', versionstr = __version__)
-    oUI.makeoption('loglevel', formats.Str, "''", '-L')
-    oUI.makeoption('show-log-settings', formats.Flag, "'no'")
-    oUI.makeoption('import-presets', formats.ReadableFile(acceptemptystring=True), "''", 'i', recurring=True)
-    oUI.makeoption('list-presets', formats.Format('RegEx', re.compile, lambda r: repr(r.pattern) if r else "''", acceptemptystring=True), "''", 'l')
-    oUI.makeoption('list-locations', formats.Flag(), "no", 'C')
-    oUI.makeoption('show-presets', formats.Format('RegEx', re.compile, lambda r: repr(r.pattern) if r else "''", acceptemptystring=True), "''", 'q')
-    oUI.makeoption('list-actions', formats.Str, "''", 'k')
-    oUI.makeoption('show-actions', formats.Str, "''", 'A')
-    oUI.makeoption('add', formats.Str(), "''", 'a', recurring=True)
-    oUI.makeoption('rename', formats.Format('RenameDef', str, nargs=2), "PATH NAME", 'r', recurring=True)
-    oUI.makeoption('show-tree', formats.Flag(), "no", 'T')
-    oUI.makeoption('show-options', formats.Str(), "''", 'o')
-    oUI.makeoption('modify-option', formats.Format('ModDef', str, nargs=3), "PATH OPTION VALUE", 'm', recurring=True)
-    oUI.makeoption('show-settings', formats.Str, "''", 'D')
-    oUI.makeoption('export-preset', formats.Format('PresetDef', str, nargs=2), "PATH PRESET_NAME", 'x')
-    oUI.makeoption('save-preset', formats.Format('PresetDef', str, nargs=2), "PATH PRESET_NAME")
-    oUI.makeoption('delete-preset', formats.Str(), "''")
-    oUI.makeoption('no-gui', formats.Flag(), "no", 'G')
-    oUI.makeoption('do', Action(), None, 'd', recurring=True)
-    oUI.makeposarg('msa_file', formats.ReadableFile, optional=True, recurring=True)
+    config = tui.tui(progname='MSAView', command='msaview', versionstr=__version__)
+    config.makeoption('loglevel', formats.Str, "''", 'L') 
+    config.makeoption('show-log-settings', formats.Flag, "'no'")
+    config.makeoption('import-presets', formats.ReadableFile(acceptemptystring=True), "''", 'i', recurring=True)
+    config.makeoption('list-presets', formats.RegEx(acceptemptystring=True), "''", 'l')
+    config.makeoption('list-locations', formats.Flag(), "no", 'C')
+    config.makeoption('show-presets', formats.RegEx(acceptemptystring=True), "''", 'q')
+    config.makeoption('list-actions', formats.Str, "''", 'k')
+    config.makeoption('show-actions', formats.Str, "''", 'A')
+    config.makeoption('add', formats.Str(), "''", 'a', recurring=True)
+    config.makeoption('rename', formats.Format('RenameDef', str, nargs=2), "PATH NAME", 'r', recurring=True)
+    config.makeoption('show-tree', formats.Flag(), "no", 'T')
+    config.makeoption('show-options', formats.Str(), "''", 'o')
+    config.makeoption('modify-option', formats.Format('ModDef', str, nargs=3), "PATH OPTION VALUE", 'm', recurring=True)
+    config.makeoption('show-settings', formats.Str, "''", 'D')
+    config.makeoption('export-preset', formats.Format('PresetDef', str, nargs=2), "PATH PRESET_NAME", 'x')
+    config.makeoption('save-preset', formats.Format('PresetDef', str, nargs=2), "PATH PRESET_NAME")
+    config.makeoption('delete-preset', formats.Str(), "''")
+    config.makeoption('no-gui', formats.Flag(), "no", 'G')
+    config.makeoption('do', UIAction(), None, 'd', recurring=True)
+    config.makeposarg('msa_file', formats.ReadableFile, optional=True, recurring=True)
+    
     try:
-        oUI.initprog(argv=argv[1:], showusageonnoargs=False, docsfile=os.path.join(os.path.dirname(__file__), "msaview_ui.docs"))
-        dsxOptions = oUI.options()
-        msa_files = oUI.posargs()[0]
-        if dsxOptions['loglevel']:
+        config.initprog(argv=argv[1:], showusageonnoargs=False, docsfile=os.path.join(os.path.dirname(__file__), "msaview_ui.docs"))
+        options = ui.options()
+        msa_files = ui.posargs()[0]
+        if options['loglevel']:
             # Correct use of this option is handled by the msaview.log module.
             if argv[1] not in msaview.log.loglevel_args:
                 msg = "%s: this option must be first if used." % msaview.log.loglevel_args[0]
                 raise tui.InvalidOptionError(msg)
-        if dsxOptions['show-log-settings']:
+        if options['show-log-settings']:
             for name in sorted(msaview.log.logger.manager.loggerDict.keys()):
                 print name + ':', msaview.log.format_level(name)
             return 0
-        if len(msa_files) > 1 and not dsxOptions['no-gui']:
+        if len(msa_files) > 1 and not options['no-gui']:
             raise OptionError('--no-gui', 'yes', 'gui not allowed for multiple MSA_FILEs')
-        if dsxOptions['show-presets']:
+        if options['show-presets']:
             try:
-                dsxOptions['show-presets'] = re.compile(dsxOptions['show-presets'])
+                options['show-presets'] = re.compile(options['show-presets'])
             except:
-                raise OptionError('--show-presets', dsxOptions['show-presets'], 'not a valid regular expression')
-        read_presets(dsxOptions['import-presets'][1:])
+                raise OptionError('--show-presets', options['show-presets'], 'not a valid regular expression')
+        read_presets(options['import-presets'][1:])
         m = msaview.Root()
-        build_component_tree(m, dsxOptions['add'][1:] or ['layout:default'])
-        rename_components(m, dsxOptions['rename'][1:])
-        modify_options(m, dsxOptions['modify-option'][1:])
-        if dsxOptions['show-options']:
-            show_options(m, dsxOptions['show-options'])
+        build_component_tree(m, options['add'][1:] or ['layout:default'])
+        rename_components(m, options['rename'][1:])
+        modify_options(m, options['modify-option'][1:])
+        if options['show-options']:
+            show_options(m, options['show-options'])
             return 0
-        if dsxOptions['show-settings']:
-            show_settings(m, dsxOptions['show-settings'])
+        if options['show-settings']:
+            show_settings(m, options['show-settings'])
             return 0
-        if dsxOptions['list-presets']:
-            list_presets(dsxOptions['list-presets'], dsxOptions['list-locations'])
+        if options['list-presets']:
+            list_presets(options['list-presets'], options['list-locations'])
             return 0
-        if dsxOptions['show-presets']:
-            show_presets(dsxOptions['show-presets'])
+        if options['show-presets']:
+            show_presets(options['show-presets'])
             return 0
-        if dsxOptions['list-actions']:
-            list_actions(dsxOptions['list-actions'])
+        if options['list-actions']:
+            list_actions(options['list-actions'])
             return 0
-        if dsxOptions['show-actions']:
-            show_actions(dsxOptions['show-actions'])
+        if options['show-actions']:
+            show_actions(options['show-actions'])
             return 0
-        if dsxOptions['show-tree']:
+        if options['show-tree']:
             from pprint import pprint
             pprint(msaview.component.get_name_tree(m))
             return 0
-        if dsxOptions['export-preset'] != ['PATH', 'PRESET_NAME']:
-            export_preset(m, *dsxOptions['export-preset'])
+        if options['export-preset'] != ['PATH', 'PRESET_NAME']:
+            export_preset(m, *options['export-preset'])
             return 0
-        if dsxOptions['save-preset'] != ['PATH', 'PRESET_NAME']:
-            full_preset_name = save_user_preset(m, *dsxOptions['save-preset'])
+        if options['save-preset'] != ['PATH', 'PRESET_NAME']:
+            full_preset_name = save_user_preset(m, *options['save-preset'])
             print "\nPreset %r saved to user preset file: %s\n" % (full_preset_name, msaview.USER_PRESET_FILE)
             return 0
-        if dsxOptions['delete-preset']:
-            delete_preset(dsxOptions['delete-preset'])
-            print "\nPreset %r removed from user preset file: %s\n" % (dsxOptions['delete-preset'], msaview.USER_PRESET_FILE)
+        if options['delete-preset']:
+            delete_preset(options['delete-preset'])
+            print "\nPreset %r removed from user preset file: %s\n" % (options['delete-preset'], msaview.USER_PRESET_FILE)
             return 0
-        for a in dsxOptions['do'][1:]:
+        for a in options['do'][1:]:
             path = a[1]
             if path:
                 target = resolve_component_path(m, path, 'do')
@@ -400,22 +420,23 @@ def main(argv):
                     raise OptionError('--do', path, 'no such component')
                 a[1] = target
     except (OptionError, tui.ParseError), e:
-        print oUI.shorthelp()
+        print config.shorthelp()
         if isinstance(e, OptionError):
             print >> sys.stderr, "ERROR: %r is not an acceptable argument for %s (%s)\n" % (e.details[1], e.details[0], e.details[2])
         else:
             print >> sys.stderr, "ERROR: %s\n" % e
         return 1
-    try:
-        action_defs = dsxOptions['do'][1:]
-        return mview(m, msa_files, action_defs, not dsxOptions['no-gui'])
-    except KeyboardInterrupt:
-        print >> sys.stderr, oUI.shorthelp()
-        return 1
-    except (OptionError), e:
-        print oUI.shorthelp()
-        print >> sys.stderr, "ERROR: %r is not an acceptable argument for %s (%s)\n" % (e.details[1], e.details[0], e.details[2])
-        return 1
+    return Session(root=m, 
+                   action_defs=options['do'][1:], 
+                   msa_files=msa_files, 
+                   show_gui=not options['no-gui'],
+                   config=config)
+    
+def main(argv):
+    session = create_session()
+    if isinstance(session, Session):
+        return session.run
+    return int(session)
 
 if __name__ == '__main__':
     x = main(sys.argv)

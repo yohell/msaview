@@ -1829,6 +1829,7 @@ class SequenceFeatureColormapOption(Option):
         
     def parse_str(self, string):
         raise ValueError
+
         
     def to_str(self, value=_UNSET):
         raise ValueError

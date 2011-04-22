@@ -1,4 +1,4 @@
-# Documentation File Compatible with DocReader v2.0.0 by YoHell
+# Documentation File Compatible with DocReader v2.0.0 by Joel Hedlund
 #
 # SYNTAX:
 #
@@ -58,8 +58,9 @@ PROGRAMMER:
 Joel Hedlund
 
 COPYRIGHT:
-Copyright (C) 2001 Joel Hedlund.
-Copyright (C) 2001 Fredrik Lysholm (substitution matrix plugin C++ code).
+Copyright (C) 2001 Joel Hedlund.\
+Copyright (C) 2001 Fredrik Lysholm (substitution matrix plugin C++ code).\
+Available under the MIT License.
 
 CONTACT:
 mail:  yohell@ifm.liu.se 
@@ -69,11 +70,8 @@ phone: +4613 28 24 23
 DESCRIPTION:
 Visualize multiple sequence alignments.
 
-OPTION: loglevel
-Control logging verbosity (must be first option). Default is report warnings or worse. See --HELP for details.
-
 OPTION: show-log-settings
-List the available loggers and their current levels.
+List the available loggers and their current levels (see --HELP).
 
 OPTION: import-presets
 Include an additional MSAView preset file.*
@@ -174,14 +172,13 @@ Execution order:\
 
 Error logging:
   %(progname)s can produce a lot of information on what is going on, but by default
-  only warnings (or worse) are written to stderr. The --loglevel option and the MSAVIEW_LOGLEVEL
-  environment variable control the amount of output that will be generated from which 
-  parts of the system. In both cases, is a comma separated list of [LOGGERNAME=]MIN_LEVEL is used, 
-  where MIN_LEVEL sets the minimum required seriousness for displayed messages. 
-  A few simple examples should make the syntax readily apparent:
-    --loglevel warn\
-    --loglevel info,data.msa=debug\
-    --loglevel 40,module.plugins=20,module.plugins.cscore=debug
+  only warnings (or worse) are written to stderr. The MSAVIEW_LOGLEVEL environment variable 
+  controls the amount of output from each part of the system, using a comma separated list 
+  [LOGGERNAME=]MIN_LEVEL. MIN_LEVEL sets the minimum required seriousness for displayed messages,
+  and LOGGERNAMEs are described further down, however a few simple examples probably make the syntax readily apparent:
+    MSAVIEW_LOGLEVEL=warn\
+    MSAVIEW_LOGLEVEL=info,data.msa=debug\
+    MSAVIEW_LOGLEVEL=40,module.plugins=20,module.plugins.cscore=debug
   
   In the first example, all messages that are warnings or worse will be displayed, for
   the entire system (this is actually the default). The second example logs information 
@@ -205,17 +202,16 @@ Error logging:
   their current LEVELs.
 
 Evironment variables:
-  MSAVIEW_LOGLEVEL has the same syntax as the --loglevel option. Changes in --loglevel
-  take precedence. 
+  MSAVIEW_LOGLEVEL (see Error logging). 
 
 FILE: USER_PRESETS
 Location: ~/.msaview/presets/user_presets.mxml\
 This file contains saved user presets. The file is automatically generated
-and should not be edited. Use MSAView programs (like %(progname)s) to manipulate 
+and should not be edited. Use MSAView aware programs (like this one) to manipulate 
 the presets in this file. 
 
-However, all .mxml files in the ~/.msaview/presets directory will be read by
-MSAView at program startup, so any presets contained in these files will be 
-available in all MSAView applications.   
+Also, all .mxml files in the ~/.msaview/presets directory will be read by
+MSAView when the backend is loaded, so any presets in these files will be 
+available in all MSAView aware applications.   
 
 # END
