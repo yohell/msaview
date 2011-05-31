@@ -281,7 +281,7 @@ def delete_preset(preset_name, option_name='--delete-preset'):
             raise OptionError(option_name, preset_name, 'no such user preset')
         raise
 
-def create_session(argv=sys.argv):
+def create_session(argv=None):
     """Parse config and return session object or exit code."""
     import tui
     from tui import formats 
@@ -332,8 +332,7 @@ def create_session(argv=sys.argv):
         def docs(self):
             return "An msaview action definition, as ACTION [PATH] [PARAM=VALUE [ ... ]]"
         
-    config = tui.tui(progname='MSAView', command='msaview', versionstr=__version__)
-    config.makeoption('loglevel', formats.Str, "''", 'L') 
+    config = tui.tui(progname='MSAView', main=__file__)
     config.makeoption('show-log-settings', formats.Flag, "'no'")
     config.makeoption('import-presets', formats.ReadableFile(acceptemptystring=True), "''", 'i', recurring=True)
     config.makeoption('list-presets', formats.RegEx(acceptemptystring=True), "''", 'l')
@@ -355,14 +354,9 @@ def create_session(argv=sys.argv):
     config.makeposarg('msa_file', formats.ReadableFile, optional=True, recurring=True)
     
     try:
-        config.initprog(argv=argv[1:], showusageonnoargs=False, docsfile=os.path.join(os.path.dirname(__file__), "msaview_ui.docs"))
-        options = ui.options()
-        msa_files = ui.posargs()[0]
-        if options['loglevel']:
-            # Correct use of this option is handled by the msaview.log module.
-            if argv[1] not in msaview.log.loglevel_args:
-                msg = "%s: this option must be first if used." % msaview.log.loglevel_args[0]
-                raise tui.InvalidOptionError(msg)
+        config.initprog(argv=argv, showusageonnoargs=False)
+        options = config.options()
+        msa_files = config.posargs()[0]
         if options['show-log-settings']:
             for name in sorted(msaview.log.logger.manager.loggerDict.keys()):
                 print name + ':', msaview.log.format_level(name)
@@ -432,10 +426,10 @@ def create_session(argv=sys.argv):
                    show_gui=not options['no-gui'],
                    config=config)
     
-def main(argv):
+def main(argv=None):
     session = create_session()
     if isinstance(session, Session):
-        return session.run
+        return session.run()
     return int(session)
 
 if __name__ == '__main__':
