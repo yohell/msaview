@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""MSAView - Fast and flexible visualisation of multiple sequence alignments.
+"""Fast and flexible visualisation of multiple sequence alignments.
 
 Copyright (c) 2011 Joel Hedlund.
 
@@ -287,6 +287,8 @@ def create_session(argv=None):
     from tui import formats 
     
     class UIAction(tui.formats.Format):
+        iNArgs = 1
+        sShortName = 'Action'
         def __init__(self):
             pass
         
@@ -315,7 +317,7 @@ def create_session(argv=None):
         def shortname(self):
             return "Action"
         
-        def strvalue(self, value):
+        def strvaluex(self, value):
             def format_action(action_def):
                 l = [action_def[0].action_name]
                 if action_def[1]:
@@ -326,35 +328,32 @@ def create_session(argv=None):
             s = str([format_action(v) for v in value[1:]])
             return "%s(%s)" % (self.shortname(), s)
             
-        def nargs(self):
-            return 1
-        
         def docs(self):
             return "An msaview action definition, as ACTION [PATH] [PARAM=VALUE [ ... ]]"
         
     config = tui.tui(progname='MSAView', main=__file__)
-    config.makeoption('show-log-settings', formats.Flag, "'no'")
-    config.makeoption('import-presets', formats.ReadableFile(acceptemptystring=True), "''", 'i', recurring=True)
-    config.makeoption('list-presets', formats.RegEx(acceptemptystring=True), "''", 'l')
-    config.makeoption('list-locations', formats.Flag(), "no", 'C')
-    config.makeoption('show-presets', formats.RegEx(acceptemptystring=True), "''", 'q')
-    config.makeoption('list-actions', formats.Str, "''", 'k')
-    config.makeoption('show-actions', formats.Str, "''", 'A')
-    config.makeoption('add', formats.Str(), "''", 'a', recurring=True)
-    config.makeoption('rename', formats.Format('RenameDef', str, nargs=2), "PATH NAME", 'r', recurring=True)
-    config.makeoption('show-tree', formats.Flag(), "no", 'T')
-    config.makeoption('show-options', formats.Str(), "''", 'o')
-    config.makeoption('modify-option', formats.Format('ModDef', str, nargs=3), "PATH OPTION VALUE", 'm', recurring=True)
-    config.makeoption('show-settings', formats.Str, "''", 'D')
-    config.makeoption('export-preset', formats.Format('PresetDef', str, nargs=2), "PATH PRESET_NAME", 'x')
-    config.makeoption('save-preset', formats.Format('PresetDef', str, nargs=2), "PATH PRESET_NAME")
-    config.makeoption('delete-preset', formats.Str(), "''")
-    config.makeoption('no-gui', formats.Flag(), "no", 'G')
-    config.makeoption('do', UIAction(), None, 'd', recurring=True)
+    config.makeoption('show-log-settings', formats.Flag, False)
+    config.makeoption('import-presets', formats.ReadableFile(acceptemptystring=True), 'i', recurring=True)
+    config.makeoption('list-presets', formats.RegEx(acceptemptystring=True), 'l')
+    config.makeoption('list-locations', formats.Flag, 'C')
+    config.makeoption('show-presets', formats.RegEx(acceptemptystring=True), 'q')
+    config.makeoption('list-actions', formats.String, 'k')
+    config.makeoption('show-actions', formats.String, 'A')
+    config.makeoption('add', formats.String, 'a', recurring=True)
+    config.makeoption('rename', formats.Format('RenameDef', str, nargs=2), 'r', recurring=True)
+    config.makeoption('show-tree', formats.Flag, 'T')
+    config.makeoption('show-options', formats.String, 'o')
+    config.makeoption('modify-option', formats.Format('ModDef', str, nargs=3), 'm', recurring=True)
+    config.makeoption('show-settings', formats.String, 'D')
+    config.makeoption('export-preset', formats.Format('PresetDef', str, nargs=2), 'x', [])
+    config.makeoption('save-preset', formats.Format('PresetDef', str, nargs=2), default=[])
+    config.makeoption('delete-preset', formats.String)
+    config.makeoption('no-gui', formats.Flag, 'G')
+    config.makeoption('do', UIAction(), 'd', recurring=True)
     config.makeposarg('msa_file', formats.ReadableFile, optional=True, recurring=True)
     
     try:
-        config.initprog(argv=argv, showusageonnoargs=False)
+        config.initprog(argv=argv)
         options = config.options()
         msa_files = config.posargs()[0]
         if options['show-log-settings']:
@@ -368,11 +367,11 @@ def create_session(argv=None):
                 options['show-presets'] = re.compile(options['show-presets'])
             except:
                 raise OptionError('--show-presets', options['show-presets'], 'not a valid regular expression')
-        read_presets(options['import-presets'][1:])
+        read_presets(options['import-presets'])
         m = msaview.Root()
-        build_component_tree(m, options['add'][1:] or ['layout:default'])
-        rename_components(m, options['rename'][1:])
-        modify_options(m, options['modify-option'][1:])
+        build_component_tree(m, options['add'] or ['layout:default'])
+        rename_components(m, options['rename'])
+        modify_options(m, options['modify-option'])
         if options['show-options']:
             show_options(m, options['show-options'])
             return 0
@@ -395,10 +394,10 @@ def create_session(argv=None):
             from pprint import pprint
             pprint(msaview.component.get_name_tree(m))
             return 0
-        if options['export-preset'] != ['PATH', 'PRESET_NAME']:
+        if options['export-preset']:
             export_preset(m, *options['export-preset'])
             return 0
-        if options['save-preset'] != ['PATH', 'PRESET_NAME']:
+        if options['save-preset']:
             full_preset_name = save_user_preset(m, *options['save-preset'])
             print "\nPreset %r saved to user preset file: %s\n" % (full_preset_name, msaview.USER_PRESET_FILE)
             return 0
@@ -406,7 +405,7 @@ def create_session(argv=None):
             delete_preset(options['delete-preset'])
             print "\nPreset %r removed from user preset file: %s\n" % (options['delete-preset'], msaview.USER_PRESET_FILE)
             return 0
-        for a in options['do'][1:]:
+        for a in options['do']:
             path = a[1]
             if path:
                 target = resolve_component_path(m, path, 'do')
@@ -421,7 +420,7 @@ def create_session(argv=None):
             print >> sys.stderr, "ERROR: %s\n" % e
         return 1
     return Session(root=m, 
-                   action_defs=options['do'][1:], 
+                   action_defs=options['do'], 
                    msa_files=msa_files, 
                    show_gui=not options['no-gui'],
                    config=config)

@@ -67,9 +67,6 @@ mail:  yohell@ifm.liu.se
  or
 phone: +4613 28 24 23
 
-DESCRIPTION:
-Visualize multiple sequence alignments.
-
 OPTION: show-log-settings
 List the available loggers and their current levels (see --HELP).
 
@@ -86,10 +83,10 @@ OPTION: show-presets
 Show details for matching presets.
  
 OPTION: add
-Add more presets/components into the component tree using PATH,PRESET//NAME. PATH and NAME can be omitted. PRESET can be a preset name or a preset class.*
+PATH,PRESET//NAME Add more presets/components into the component tree. PATH and NAME can be omitted. PRESET can be a preset name or a preset class.*
 
 OPTION: rename
-Change the name of a component.
+PATH NEW_NAME Change the name of a component.
 
 OPTION: show-tree
 Show the current component tree.
@@ -98,16 +95,16 @@ OPTION: show-options
 Show options (and help) for the component at PATH.
 
 OPTION: modify-option
-Change a component option.*
+PATH OPTION VALUE Change a component option.*
 
 OPTION: show-settings
 Show setting xml for the component (sub)tree at PATH.
  
 OPTION: export-preset
-Create a preset for the component (sub)tree at PATH and return the xml.
+PATH PRESET_NAME Create a preset for the component (sub)tree at PATH and return the xml.
  
 OPTION: save-preset
-Create a preset for the component (sub)tree at PATH and save it to the USER_PRESETS file.
+PATH PRESET_NAME Create a preset for the component (sub)tree at PATH and save it to the USER_PRESETS file.
 
 OPTION: delete-preset
 Delete the preset from the USER_PRESETS file and exit.
