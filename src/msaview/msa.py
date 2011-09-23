@@ -440,7 +440,10 @@ class MSA(Component):
             first_position = self.msa_positions[sequence_index][match.start()]
             last_position = self.msa_positions[sequence_index][match.end() - 1]
         if isinstance(end, int):
-            last_position = end
+            if end < 0:
+                last_position = len(self) - end
+            else:
+                last_position = end
         elif end is not None:
             sequence_index, match = self.find_motif_in_msa(end, first_position)
             if not match:
@@ -863,4 +866,49 @@ class DeletePositions(Action):
         self.target.set_msa(sequences, path, self.target.ids, self.target.descriptions)
         
 register_action(DeletePositions)
+          
+class CropToSelection(Action):
+    action_name = 'crop-to-selection'
+    path = ['Edit', 'Crop to selection']
+    tooltip = 'Delete everything outside the selection.'
+    
+    @classmethod
+    def applicable(cls, target=None, coord=None):
+        if target.msaview_classname != 'data.msa':
+            return
+        if not target.selection:
+            return
+        return cls(target)
+    
+    def run(self):
+        pos = RegionSelection()
+        seq = RegionSelection()
+        _pos = iter(self.target.selection.positions.regions)
+        _seq = iter(self.target.selection.sequences.regions)
+        _areas = (a.positions for a in self.target.selection.areas.areas)
+        for pos_region in sorted(chain(_pos, _areas), key=lambda r: r.start):
+            pos.incorporate(pos_region)
+        for seq_region in sorted(chain(_seq, _areas), key=lambda r: r.start):
+            seq.incorporate(seq_region)
+        if not pos.regions:
+            pos.add_region(0, len(self.target))
+        if not seq.regions:
+            seq.add_region(0, len(self.target.sequences))
+        sequences = [list() for _ in range(sum(r.length for r in seq.regions))]
+        ids = [None] * len(sequences) 
+        descriptions = [None] * len(sequences)
+        new_index = -1
+        for seq_region in seq.regions:
+            for i, sequence in enumerate(self.target.sequences[seq_region.start:seq_region.start + seq_region.length]):
+                new_index += 1
+                sequences[new_index] = ''.join(sequence[r.start:r.start+r.length] for r in pos.regions)
+                ids[new_index] = self.target.ids[seq_region.start + i]
+                descriptions[new_index] = self.target.ids[seq_region.start + i]
+        self.target.selection.positions.clear()
+        self.target.selection.sequences.clear()
+        self.target.selection.areas.clear()
+        path = self.target.path.strip('*') + '*'
+        self.target.set_msa(sequences, path, ids, descriptions)
+        
+register_action(CropToSelection)
           
