@@ -50,9 +50,11 @@ from distutils.core import Extension, setup
 
 packages = ['msaview', 
             'msaview_ui',
+            'msaview_plugin_backbone', 
             'msaview_plugin_biomart', 
             'msaview_plugin_clustal', 
             'msaview_plugin_cscore', 
+            'msaview_plugin_disopred', 
             'msaview_plugin_ensembl', 
             'msaview_plugin_hmmer', 
             'msaview_plugin_nexus', 
@@ -63,16 +65,23 @@ packages = ['msaview',
             'msaview_plugin_substitution_matrix', 
             'msaview_plugin_uniprot',
             ]
-py_modules = ['msaview_plugin_backbone', 
-              'msaview_plugin_disopred', 
-              ]
 
-for name in packages + py_modules:
+for name in packages:
     getattr(__import__(name), '__version__')
     
-versions = dict((name, getattr(__import__(name), '__version__')) for name in packages + py_modules)
-provides = ["%s (%s)" % (name, versions[name]) for name in packages + py_modules]
+versions = dict((name, getattr(__import__(name), '__version__')) for name in packages)
+provides = ["%s (%s)" % (name, versions[name]) for name in packages]
 __version__ = versions['msaview']
+
+import distutils.command.install_scripts
+import shutil
+
+class my_install(distutils.command.install_scripts.install_scripts):
+    def run(self):
+        distutils.command.install_scripts.install_scripts.run(self)
+        for script in self.get_outputs():
+            if script.endswith(".py"):
+                shutil.move(script, script[:-3])
 
 setup(name='msaview',
       version=__version__,
@@ -83,9 +92,8 @@ setup(name='msaview',
       url='https://sourceforge.net/projects/msaview/',
       download_url='https://sourceforge.net/projects/msaview/',
       packages=packages,
-      py_modules=py_modules,
       provides=provides,
-      scripts=['msaview_ui/msaview'],
+      scripts=['msaview.py'],
       ext_modules=[Extension('msaview._renderers', 
                              ['msaview/renderers.cpp'], 
                              extra_compile_args=['-O3'],
@@ -133,5 +141,6 @@ setup(name='msaview',
           'Topic :: Software Development :: Libraries :: Python Modules',
           'Topic :: Scientific/Engineering :: Bio-Informatics',
           ],
+      cmdclass = {"install_scripts": my_install}
       )
 

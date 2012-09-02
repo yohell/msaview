@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-"""MSAView - Fast and flexible visualisation of multiple sequence alignments.
+"""MSAView
+Fast and flexible visualisation of multiple sequence alignments.
 
-Copyright (c) 2011 Joel Hedlund.
-
-Contact: Joel Hedlund <yohell@ifm.liu.se>
+Author:    Joel Hedlund <joel@nsc.liu.se>
+Contact:   If you have problems with this package, please contact the author.
+Copyright: Copyright (c) 2012 Joel Hedlund.
+License:   The MIT License.
+#Download:  sourceforge whatever
 
 MSAView is a modular, configurable and extensible package for analysing and 
 visualising multiple sequence alignments and sequence features. It can import 
@@ -47,10 +50,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 import sys
-
 from msaview_ui import main
 if __name__ == '__main__':
-    x = main(sys.argv)
-    if x:
-        sys.exit(int(x))
+    sys.exit(main() or 0)
 

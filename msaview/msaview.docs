@@ -23,7 +23,7 @@
 #        
 #    - Labelled block tags:
 #        ARGUMENT:    [single paragraph]     
-#        OPTION:      [single paragraph]     
+#        PARAMETER:      [single paragraph]     
 #        FILE:        [multiple paragraphs]  
 #
 # * All blocks start with a tag line that must contain the block tag and 
@@ -31,7 +31,7 @@
 #   The Labelled block tag lines are exceptions to this rule, as they are
 #   required to have a label after the block tag, like so:
 #
-#       OPTION: help
+#       PARAMETER: help
 #
 # * In blocks marked with [single paragraph] all text will be concatenated
 #   into a single string, with newlines and blank lines converted to a single
@@ -54,74 +54,61 @@
 #   This helps in avoiding lagging documentation somewhat. This also means that
 #   actual % characters need to be written as %%.
 
-PROGRAMMER:
-Joel Hedlund
-
-COPYRIGHT:
-Copyright (C) 2001 Joel Hedlund.\
-Copyright (C) 2001 Fredrik Lysholm (substitution matrix plugin C++ code).\
-Available under the MIT License.
-
-CONTACT:
-mail:  yohell@ifm.liu.se 
- or
-phone: +4613 28 24 23
-
-OPTION: show-log-settings
+PARAMETER: show-log-settings
 List the available loggers and their current levels (see --HELP).
 
-OPTION: import-presets
+PARAMETER: import-presets
 Include an additional MSAView preset file.*
 
-OPTION: list-presets
+PARAMETER: list-presets
 List matching currently available presets. '.' means list all.
 
-OPTION: list-locations
+PARAMETER: list-locations
 Show preset file paths when listing presets.
 
-OPTION: show-presets
+PARAMETER: show-presets
 Show details for matching presets.
  
-OPTION: add
+PARAMETER: add
 PATH,PRESET//NAME Add more presets/components into the component tree. PATH and NAME can be omitted. PRESET can be a preset name or a preset class.*
 
-OPTION: rename
+PARAMETER: rename
 PATH NEW_NAME Change the name of a component.
 
-OPTION: show-tree
+PARAMETER: show-tree
 Show the current component tree.
 
-OPTION: show-options
+PARAMETER: show-options
 Show options (and help) for the component at PATH.
 
-OPTION: modify-option
-PATH OPTION VALUE Change a component option.*
+PARAMETER: modify-option
+PATH PARAMETER VALUE Change a component option.*
 
-OPTION: show-settings
+PARAMETER: show-settings
 Show setting xml for the component (sub)tree at PATH.
  
-OPTION: export-preset
+PARAMETER: export-preset
 PATH PRESET_NAME Create a preset for the component (sub)tree at PATH and return the xml.
  
-OPTION: save-preset
+PARAMETER: save-preset
 PATH PRESET_NAME Create a preset for the component (sub)tree at PATH and save it to the USER_PRESETS file.
 
-OPTION: delete-preset
+PARAMETER: delete-preset
 Delete the preset from the USER_PRESETS file and exit.
 
-OPTION: no-gui
+PARAMETER: no-gui
 Save image files instead of showing the graphical user interface.  
 
-OPTION: list-actions
+PARAMETER: list-actions
 List matching action names. - means list all.
 
-OPTION: show-actions
+PARAMETER: show-actions
 Show help for matching actions setting. - means show all.
 
-OPTION: do
+PARAMETER: do
 Run an action, as ACTION [PATH] [PARAM=VALUE [ ... ]]. First matching name will be run.* 
 
-ARGUMENT: msa_file
+PARAMETER: msa-file
 A fasta format MSA to visualize.
 
 GENERAL:
