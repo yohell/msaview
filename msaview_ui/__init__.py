@@ -273,6 +273,7 @@ def delete_preset(preset_name, option_name='--delete-preset'):
 
 def main(argv=None):
     """Parse config and return session object or exit code."""
+    import tui
     from tui import (Option,
                      ParseError,
                      PositionalArgument as Posarg,

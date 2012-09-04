@@ -47,8 +47,9 @@ from msaview.plotting import vector_based
 from msaview.selection import Region 
 from msaview.features import (ContiguousRegion, 
                               make_regions)
+from msaview.renderers import MSARenderer
 
-class BackboneRenderer(msaview.renderers.MSARenderer):
+class BackboneRenderer(MSARenderer):
 
     def __init__(self):
         msaview.renderers.MSARenderer.__init__(self)

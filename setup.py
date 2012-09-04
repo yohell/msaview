@@ -46,7 +46,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+import distutils.command.install_scripts
 from distutils.core import Extension, setup
+import shutil
 
 packages = ['msaview', 
             'msaview_ui',
@@ -72,9 +74,6 @@ for name in packages:
 versions = dict((name, getattr(__import__(name), '__version__')) for name in packages)
 provides = ["%s (%s)" % (name, versions[name]) for name in packages]
 __version__ = versions['msaview']
-
-import distutils.command.install_scripts
-import shutil
 
 class my_install(distutils.command.install_scripts.install_scripts):
     def run(self):

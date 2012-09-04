@@ -9,6 +9,7 @@ msaview_plugin_substitution_matrix/substitution_matrix.py
 build
 dist
 MANIFEST
+*~
 
 tui
 
