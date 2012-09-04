@@ -1,6 +1,6 @@
 .project
 .pydevproject
-*.pyc
+*.py[co]
 *.pyo
 *.so
 *.o
